@@ -1,0 +1,64 @@
+esphome:
+  name: sauerteig-iot
+  friendly_name: sauerteig-iot
+
+esp8266:
+  board: d1_mini
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret iot_wifi_ssid
+  password: !secret iot_wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Sauerteig-Iot Fallback Hotspot"
+    password: !secret hotspot_password
+
+web_server:
+  port: 80
+  include_internal: true
+
+improv_serial: 
+
+captive_portal:
+
+sensor:
+  # HC-SR04 Ultraschall Sensor Teighöhe
+  - platform: ultrasonic
+    trigger_pin: D3
+    echo_pin: D4
+    name: "Sauerteighöhe"
+    id: sauerteig_hoehe
+    unit_of_measurement: "cm"
+    accuracy_decimals: 1
+    # Behälter Höhe mit Deckel: 10,25cm 
+    # Abstand Sensor zu Deckel: 0,7 cm
+    # Abstand Sensor zu Boden: 8,65 cm
+    # aktueller Wert x Meter
+    # ergo: verbleibend = (8.65 - Höhe)
+    filters:
+    #  - offset: 0.5
+      - lambda: return ((0.0865 - x) * 100);
+      - filter_out: nan
+  
+  # DHT11
+  - platform: dht
+    pin: D5
+    temperature:
+      name: "Sauerteig Temperatur"
+      id: sauerteig_temp
+    humidity:
+      name: "Sauerteig Luftfeuchtigkeit"
+      id: sauerteig_luftfeuchtigkeit
